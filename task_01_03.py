@@ -9,7 +9,7 @@ n = 1
 
 while n < len(l):
     for i in range(len(l)-n):
-        if l[i] >l[i+1]:
+        if l[i] > l[i+1]:
             l[i],l[i+1] = l[i+1],l[i]
     n += 1
 
