@@ -1,4 +1,4 @@
-def is_polindrome(s):
+def is_palindrome(s):
     
     def vfun(sh):              
         sh = str(sh)
