@@ -1,6 +1,8 @@
-#print('Введите три целых числа (например: 10 4 6)')
+x = int(input())
+y = int(input())
+z = int(input())
 
-l = input().split()
+l = [x, y, z]
 
 for i in range(len(l)):
     l[i] = int(l[i])
