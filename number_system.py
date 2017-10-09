@@ -66,9 +66,9 @@ def hex2dec(number):
     d = {'0':0, '1':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9,'A':10, 'B':11, 'C':12, 'D':13, 'E':14, 'F':15}
     
     for i in number:
-        for key in d:
-            if i == key:
-                y += d[key]*(16**(n-1))
+        for nom in d:
+            if i == nom:
+                y += d[nom]*(16**(n-1))
                    
         n -= 1
         
