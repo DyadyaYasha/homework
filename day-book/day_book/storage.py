@@ -1,4 +1,3 @@
-import menu
 import os.path as Path
 import sqlite3
 
@@ -6,8 +5,6 @@ SQL_SELECT_ALL = """
     SELECT id, day, month, zagolovok, zadacha, status
     FROM daybook
 """ 
-
-menu.menu()
 
 def connect(db_name=None):
     if db_name is None:
