@@ -8,28 +8,35 @@ get_connection = lambda : storage.connect('daybook.sqlite')
 
 def action_add_zad():
     """Добавить задачу"""
-    zad = input('\nВведите задачу: ')
-
+    zagolovok = vvod_zagol()
+    zadacha = vvod_zad()
     with get_connection() as conn:
-        new_zad = storage.add_zad(conn, zad)
-
-    print('Ваша задача: "{}" добавлена в ежедневник'.format(new_zad))
-    # если мы отрицаем пустоту т.е. not то возвращаем истину
-
-    if not zad:
+        zad = storage.add_zad(conn, zadacha, zagolovok)
+    if not zadacha:
         return
+    return zad
 
+
+def vvod_zagol():
+    while True:
+        zagol = input('\n Введите заголовок: \n')
+        if zagol:
+            return zagol
+
+
+def vvod_zad():
+    while True:
+        zad = input('\n Введите задачу: \n')
+        if zad:
+            return zad
 
 
 def action_find_by_zagol():
     """Найти задачу по заголовку"""
     zagol = input('Введите заголовок задачи: ')
-    # kлюбую введённую строчку можно привести к истене, пустой ввод игнорируется
-
     if zagol:
         with get_connection() as conn:
             row = storage.zad_by_zagol(conn, zagol)
-
         if row:
             zad = row.get('zadacha')
             print('Ваша задача: {}'.format(zad)) # format вставляет то что нам нужно в {}
@@ -39,28 +46,80 @@ def action_find_by_zagol():
 
 
 def action_zad_all():
-    """Вывести все url-адреса"""
+    """Вывести все задачи"""
     with get_connection() as conn:
         rows = storage.zad_all(conn)
 
-    template = '{row[zagol]} - {row[zadacha]} - {row[day]} - {row[month]}' # если проименовать значения то можно подставить квадратные скобки в которые format вытащит из словаря нужные данные
-    # дату можно еще форматироать в удобный вид
-    # можно нумеровать template = '{0} - {0} - {1}' тогда format нужно передать всего 2 аргумента
-
+    template = '\n Задача № {row[id]} - Заголовок "{row[zagolovok]}" - Текст "{row[zadacha]}" - Статус "{row[status]}" - Дата создания {row[created]}'
     for row in rows:
         print(template.format(row=row))
 
 
 def action_redact_zad():
     """Редактировать задачу"""
+    pk = input('Введите номер задачи: ')
+
+    if pk:
+        with get_connection() as conn:
+            zad = storage.zad_by_pk(conn, pk)
+
+        if zad:
+            rezad = input('\n Введите исправления: ')
+            with get_connection() as conn:
+                zad = storage.vary_zad(conn, pk, rezad)
+                print('\n Задача № {} исправлена'.format(pk))
+        else:
+            print('Задача № {} не существует'.format(pk))
+
+def action_redact_zagol():
+    """Редактировать заголовок"""
+    pk = input('Введите номер задачи: ')
+
+    if pk:
+        with get_connection() as conn:
+            zag = storage.zad_by_pk(conn, pk)
+
+        if zag:
+            rezag = input('\n Введите исправленный заголовок: ')
+            with get_connection() as conn:
+                zag = storage.vary_zagol(conn, pk, rezag)
+                print('\n Заголовок задачи № {} исправлен'.format(pk))
+        else:
+            print('Задача № {} не существует'.format(pk))
 
 
 def action_end_zad():
     """Закончить задачу"""
+    pk = input('Введите номер задачи: ')
+
+    if pk:
+        with get_connection() as conn:
+            zad = storage.zad_by_pk(conn, pk)
+
+        if zad:
+            stat = 'Закончена'
+            with get_connection() as conn:
+                zad = storage.vary_status(conn, pk, stat)
+                print('\n Задача № {} закончена'.format(pk))
+        else:
+            print('Задача № {} не существует'.format(pk))
 
 
 def action_restart_zad():
     """Начать задачу сначала"""
+    pk = input('Введите заголовок задачи: ')
+
+    if pk:
+        with get_connection() as conn:
+            zad = storage.zad_by_pk(conn, pk)
+
+        if zad:
+            stat = "Не закончена"
+            with get_connection() as conn:
+                zad = storage.vary_status(conn, pk, stat)
+                print('\n Статус задачи № {} изменён на "Не закончена"'.format(zagol))
+        else:
+            print('\n Задача № {} не существует'.format(pk))
 
 
 def action_show_menu():
@@ -73,6 +132,8 @@ def action_show_menu():
  3. - Отредактировать задачу
  4. - Завершить задачу
  5. - Начать задачу сначала
+ 6. - Найти задачу по заголовку
+ 7. - Отредактировать заголовок
  m. - Показать меню
  q. - Выйти""")
 
@@ -84,26 +145,27 @@ def action_exit():
 
 
 def main():
-    creation_schema = Path.join( # склеивает путь файла с разделитилем определённой OS
-        Path.dirname(__file__), 'schema.sql' # позволяет вернуть родительскую директорию файла и отрежет файл оставив только путь
+    creation_schema = Path.join(
+        Path.dirname(__file__), 'schema.sql'
     )
 
     with get_connection() as conn:
         storage.initialize(conn, creation_schema)
 
     actions = {
-        '1': action_zad_all, # action_find_by_zagol,
+        '1': action_zad_all,
         '2': action_add_zad,
         '3': action_redact_zad,
         '4': action_end_zad,
         '5': action_restart_zad,
+        '6': action_find_by_zagol,
+        '7': action_redact_zagol,
         'm': action_show_menu,
         'q': action_exit
     }
 
     action_show_menu()
 
-# метод get не завершит программу при ошибочном вводе, он обрезает ошибочный ввод 
     while True:
         cmd = input('\n Введите команду: ')
         action = actions.get(cmd)
@@ -111,82 +173,3 @@ def main():
             action()
         else:
             print('Неизвестная команда')
-# def menu():
-#     loop = True
-#     while loop == True:
-#         print(
-#             '\n Ежедневник. Выберите действие:\n\n'
-#             ' 1 - Вывести список задач\n'
-#             ' 2 - Добавить задачу\n'
-#             ' 3 - Отредактировать задачу\n'
-#             ' 4 - Завершить задачу\n'
-#             ' 5 - Начать задачу сначала\n'
-#             ' 0 - Выход'
-#         )
-#         vvod = input('\n Введите число: ')
-
-#         if vvod == '1':
-#             spizad()
-#         elif vvod == '2':
-#             print('\n Ввввжух и добавляю задачу\n')
-#         elif vvod == '3':
-#             print('\n Ввввжух и редактирую задачу\n')
-#         elif vvod == '4':
-#             print('\n Ввввжух и завершаю задачу\n')
-#         elif vvod == '5':
-#             print('\n Ввввжух и начинаю задачу сначала\n')
-#         elif vvod == '0':
-#             print('\n Ввввжух и выхожу\n')
-#             loop = False
-#         else:
-#             print('\n Неизвестная команда. Попробуй снова. Я знаю ты сможешь!\n')
-
-# def spizad():
-#     loop2 = True
-#     while loop2 == True:
-#         print(
-#             '\n Список задач. Выберите действие:\n\n'
-#             ' 1 - За день\n'
-#             ' 2 - За неделю\n'
-#             ' 3 - За месяц\n'
-#             ' 0 - Вернуться в главное меню'
-#         )
-#         vvod2 = input('\n Введите число: ')
-
-#         if vvod2 == '1':
-#             #print('\n Ввввжух и вывожу список задач за день\n')
-#             zaden()
-#         elif vvod2 == '2':
-#             print('\n Ввввжух и вывожу список задач за неделю\n')
-#         elif vvod2 == '3':
-#                 print('\n Ввввжух и вывожу список задач за месяц\n')
-#         elif vvod2 == '0':
-#             print('\n Ввввжух и возвращаюсь в главное меню\n')
-#             loop2 = False
-#         else:
-#             print('\n Неизвестная команда. Попробуй снова. Я знаю ты сможешь!\n')
-
-# def zaden():
-#     loop3 = True
-#     while loop3 == True:
-#         print(
-#             '\n Список задач. За день. Выберите действие:\n\n'
-#             ' 1 - За сегодня\n'
-#             ' 2 - За конкретный день\n'
-#             ' 0 - Вернуться назад'
-#         )
-#         vvod3 = input('\n Введите число: ')
-
-#         if vvod3 == '1':
-#             print('\n Ввввжух и вывожу список задач за сегодня\n')
-#         elif vvod3 == '2':
-#             print('\n Ввввжух и вывожу список задач за конкретный день\n')
-#         elif vvod3 == '0':
-#             print('\n Ввввжух и возвращаюсь назад\n')
-#             loop3 = False
-#         else:
-#             print('\n Неизвестная команда. Попробуй снова. Я знаю ты сможешь!\n')
-
-
-if (__name__=="__main__"):
-    menu() 
