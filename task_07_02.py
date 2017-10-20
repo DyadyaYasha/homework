@@ -1,10 +1,8 @@
 import random
+import string
 
-def password_generator(n):
-    sp = ('@#$%&*')
-    sp = list(sp)
-    sp2 = [random(sp) for i in range(n)]
-    yield sp
-    print(sp2)
-
-print(*password_generator(16))
+def passgen(xxx):
+    znaki = (string.ascii_letters + string.digits + string.punctuation)
+    #sym = (string.ascii_letters + string.digits)
+    cikla = (random.choice(znaki) for i in range(xxx))
+    return ''.join(cikla)
