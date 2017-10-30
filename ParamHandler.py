@@ -45,8 +45,7 @@ class TxtParamHandler(ParamHandler):
 
     def read(self):
         with open(self.source, 'r') as r:
-            content = r.read()
-            return content
+            return r.read()
 
     def write(self, data):
         with open(self.source, 'w') as f:
