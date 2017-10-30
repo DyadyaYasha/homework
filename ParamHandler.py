@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from os import path
 
 class ParamHandler(metaclass=ABCMeta):
-    types = {}
     def __init__(self, source):
         self.source = source
 
