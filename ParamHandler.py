@@ -44,8 +44,8 @@ class ParamHandler(metaclass=ABCMeta):
 class TxtParamHandler(ParamHandler):
 
     def read(self):
-        with open(self.source, 'r') as r:
-            return r.read()
+        with open(self.source, 'r') as f:
+            return f.read()
 
     def write(self, data):
         with open(self.source, 'w') as f:
