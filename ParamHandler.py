@@ -16,28 +16,28 @@ class ParamHandler(metaclass=ABCMeta):
     # @abstractmethod
     # def finish_writing(self):
     #     pass
-
+    types = {}
 
     @classmethod
-    def add_type(cls, name, classh):
+    def add_type(cls, name, klass):
         if not name:
             raise ParamHandlerException('Type must have a name!')
-        if not issubclass(classh, ParamHandler):
+        if not issubclass(klass, ParamHandler):
             raise ParamHandlerException (
-                'Class {} is not ParamHandler'.format(classh)
+                'Class {} is not ParamHandler'.format(klass)
             )
-        cls.types[name] = classh
+        cls.types[name] = klass
 
     @classmethod
     def get_instance(cls, source, *args, **kwargs):
         _, ext = path.splitext(str(source).lower())
         ext = source.split('.')[-1]
-        classh = cls.types.get(ext)
-        if classh is None:
+        klass = cls.types.get(ext)
+        if klass is None:
             raise ParamHandlerException(
                 'Type {} is not found'.format(ext)
             )
-        return classh(source, *args, **kwargs)
+        return klass(source, *args, **kwargs)
 
 
 class TxtParamHandler(ParamHandler):
