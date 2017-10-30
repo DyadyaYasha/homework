@@ -25,7 +25,7 @@ class ParamHandler(metaclass=ABCMeta):
             raise ParamHandlerException('Type must have a name!')
         if not issubclass(classh, ParamHandler):
             raise ParamHandlerException (
-                'Class {} is not ParamHandler'.format(klass)
+                'Class {} is not ParamHandler'.format(classh)
             )
         cls.types[name] = classh
 
