@@ -1,4 +1,8 @@
 from abc import ABCMeta, abstractmethod
+import datetime
+
+class ValidatorException(Exception):
+    pass
 
 class Validator(metaclass=ABCMeta):
 
@@ -28,7 +32,7 @@ class Validator(metaclass=ABCMeta):
             klass = cls.types.get(name)
             if klass is None:
                 raise ValidatorException(
-                    'Validator {} не найден'.format(name)
+                    'Validator with name "{}" not found'.format(name)
                 )
             return klass()
 
@@ -45,13 +49,34 @@ class EMailValidator(Validator):
 
         return True
 
-# class DateTimeValidator(object):
-#     pass
+
+class DateTimeValidator(Validator):
+
+    def validate(self, value):
+        valid_date = [
+            '%Y-%m-%d',
+            '%Y-%m-%d %H:%M',
+            '%Y-%m-%d %H:%M:%S',
+            '%d.%m.%Y',
+            '%d.%m.%Y %H:%M',
+            '%d.%m.%Y %H:%M:%S',
+            '%d/%m/%Y',
+            '%d/%m/%Y %H:%M',
+            '%d/%m/%Y %H:%M:%S',
+        ]
+
+        for forms in valid_date:
+            try:
+                datetime.datetime.strptime(value, forms)
+                return True
+            except ValueError:
+                continue
+        return False
 
 
 
 Validator.add_type('email', EMailValidator)
-
+Validator.add_type('datetime', DateTimeValidator)
 
 if __name__ == '__main__':
     validator = Validator.get_instance('email')
@@ -59,3 +84,9 @@ if __name__ == '__main__':
     print(validator.validate('infoitmo-it.org'))
     print(validator.validate('info@@itmo-it.org'))
     print(validator.validate('info@itmo-itorg'))
+
+
+    validator = Validator.get_instance('datetime')
+    print(validator.validate('1.9.2017'))
+    print(validator.validate('01/09/2017 12:00'))
+    print(validator.validate('2017-09-01 12:00:00'))
